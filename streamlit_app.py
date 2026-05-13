@@ -1,6 +1,5 @@
 # =========================================================
-# APP FINAL HYBRID V5.1
-# PREDIKSI CURAH HUJAN SURABAYA
+# MODERN RAINFALL FORECAST DASHBOARD
 # =========================================================
 
 import streamlit as st
@@ -10,40 +9,144 @@ import joblib
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
+import time
 
 # =========================================================
 # CONFIG
 # =========================================================
 
 st.set_page_config(
-    page_title="Prediksi Curah Hujan",
+    page_title="Rainfall Forecast Dashboard",
     page_icon="🌧️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # =========================================================
-# STYLE
+# SPLASH SCREEN
+# =========================================================
+
+if "loading_done" not in st.session_state:
+
+    splash = st.empty()
+
+    splash.markdown(
+        """
+        <style>
+        .splash-container {
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            height:80vh;
+        }
+
+        .splash-title {
+            font-size:40px;
+            font-weight:700;
+            color:white;
+            margin-top:20px;
+        }
+
+        .splash-subtitle {
+            color:#94a3b8;
+            font-size:18px;
+        }
+        </style>
+
+        <div class="splash-container">
+            <img src="https://raw.githubusercontent.com/Lexxxxxa2/prediksihujan/main/logo_universitas.png" width="220">
+
+            <div class="splash-title">
+                Universitas Wijaya Kusuma Surabaya
+            </div>
+
+            <div class="splash-subtitle">
+                Rainfall Forecast Dashboard
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    time.sleep(3)
+
+    splash.empty()
+
+    st.session_state.loading_done = True
+
+# =========================================================
+# MODERN CSS
 # =========================================================
 
 st.markdown("""
 <style>
 
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
 .main {
-    background-color: #0E1117;
+    background: linear-gradient(
+        180deg,
+        #0f172a 0%,
+        #111827 100%
+    );
 }
 
 .block-container {
-    padding-top: 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
 }
 
-.stButton>button {
-    border-radius: 10px;
-    height: 45px;
-    font-weight: bold;
+section[data-testid="stSidebar"] {
+    background: #0b1120;
+    border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-[data-testid="stSidebar"] {
-    background-color: #111827;
+.stButton > button {
+    width: 100%;
+    border-radius: 14px;
+    height: 48px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    background: linear-gradient(90deg,#2563eb,#3b82f6);
+    color: white;
+    transition: 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(37,99,235,0.4);
+}
+
+div[data-testid="metric-container"] {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 18px;
+}
+
+.big-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0;
+}
+
+.subtitle {
+    color: #94a3b8;
+    font-size: 16px;
+    margin-top: -10px;
 }
 
 </style>
@@ -63,7 +166,8 @@ if "page" not in st.session_state:
 # SIDEBAR
 # =========================================================
 
-st.sidebar.title("🌧️ MENU")
+st.sidebar.markdown("## 🌧️ Rainfall AI")
+st.sidebar.markdown("---")
 
 def nav_button(label, key):
 
@@ -77,6 +181,13 @@ nav_button("📋 Hasil Prediksi", "hasil")
 nav_button("📈 Grafik", "grafik")
 nav_button("🔥 Heatmap", "heatmap")
 nav_button("📊 Evaluasi Model", "evaluasi")
+nav_button("🧠 Flowchart Penelitian", "flowchart")
+
+st.sidebar.markdown("---")
+
+st.sidebar.info(
+    "Dashboard prediksi curah hujan berbasis Machine Learning"
+)
 
 menu = st.session_state.page
 
@@ -99,34 +210,19 @@ df = pd.read_excel(
 
 df.columns = df.columns.str.lower()
 
-# =========================================================
-# RENAME KOLOM
-# =========================================================
-
 rename_map = {
 
     'temp_avg_c': 'TAVG',
     'temp_max_c': 'TX',
     'temp_min_c': 'TN',
-
     'rel_humidity_avg_pc': 'RH_AVG',
-
     'sunshine_24h_h': 'SS',
-
     'wind_speed_max_ms': 'FF_X',
     'wind_speed_avg_ms': 'FF_AVG',
-
     'rainfall_mm': 'RR'
 }
 
-df.rename(
-    columns=rename_map,
-    inplace=True
-)
-
-# =========================================================
-# PASTIKAN FEATURE ADA
-# =========================================================
+df.rename(columns=rename_map, inplace=True)
 
 required_cols = [
     'TAVG',
@@ -142,20 +238,15 @@ required_cols = [
 for col in required_cols:
 
     if col not in df.columns:
-
         df[col] = 0
 
 # =========================================================
-# TANGGAL
+# DATE
 # =========================================================
 
 df['tanggal'] = pd.to_datetime(
     df['data_timestamp']
 )
-
-# =========================================================
-# GROUP HARIAN
-# =========================================================
 
 df = df.groupby(
     'tanggal'
@@ -171,28 +262,23 @@ def add_features(df):
 
     df = df.copy()
 
-    # rolling
     df['TAVG_3D'] = df['TAVG'].rolling(3).mean()
     df['RR_3D'] = df['RR'].rolling(3).sum()
     df['RH_3D'] = df['RH_AVG'].rolling(3).mean()
 
-    # calendar
     df['DAYOFYEAR'] = df['tanggal'].dt.dayofyear
     df['MONTH'] = df['tanggal'].dt.month
 
-    # lag
     df['RR_LAG_1'] = df['RR'].shift(1)
     df['RR_LAG_7'] = df['RR'].shift(7)
     df['RR_LAG_14'] = df['RR'].shift(14)
 
-    # rolling stats
     df['RR_MEAN_7'] = df['RR'].rolling(7).mean()
     df['RR_STD_7'] = df['RR'].rolling(7).std()
 
     df['RR_MEAN_30'] = df['RR'].rolling(30).mean()
     df['RR_STD_30'] = df['RR'].rolling(30).std()
 
-    # diff
     df['TAVG_DIFF'] = df['TAVG'].diff()
     df['RH_DIFF'] = df['RH_AVG'].diff()
     df['RR_DIFF'] = df['RR'].diff()
@@ -209,7 +295,7 @@ df = df.ffill()
 df = df.fillna(0)
 
 # =========================================================
-# METRIC MODEL
+# MODEL METRIC
 # =========================================================
 
 BEST_MAE = 5.18
@@ -220,40 +306,62 @@ BEST_RECALL = 0.69
 BEST_F1 = 0.70
 
 # =========================================================
-# TITLE
+# HERO SECTION
 # =========================================================
-
-st.title("🌧️ Prediksi Curah Hujan Kota Surabaya")
 
 st.markdown("""
-Dashboard prediksi curah hujan berbasis Machine Learning  
-menggunakan algoritma K-Nearest Neighbor (K-NN)
-""")
+<div class="big-title">
+🌧️ Rainfall Forecast Dashboard
+</div>
+
+<div class="subtitle">
+Prediksi Curah Hujan Kota Surabaya menggunakan Machine Learning K-Nearest Neighbor (K-NN)
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
 
 # =========================================================
-# INPUT
+# TOP METRIC
 # =========================================================
 
-col1, col2, col3 = st.columns([1,1,3])
+m1, m2, m3, m4 = st.columns(4)
 
-with col1:
+m1.metric("Model", "K-NN Hybrid")
+m2.metric("Akurasi", "69.44%")
+m3.metric("PCA", "10 Component")
+m4.metric("Data", "2021-2025")
 
-    n_days = st.number_input(
+st.markdown("---")
+
+# =========================================================
+# INPUT SECTION
+# =========================================================
+
+st.markdown("## ⚙️ Pengaturan Prediksi")
+
+box1, box2 = st.columns([2,1])
+
+with box1:
+
+    n_days = st.slider(
         "Jumlah Hari Prediksi",
         1,
         365,
         30
     )
 
-with col2:
+with box2:
+
+    st.write("")
+    st.write("")
 
     run = st.button(
-        "🚀 Jalankan Prediksi",
-        use_container_width=True
+        "🚀 Jalankan Prediksi"
     )
 
 # =========================================================
-# KATEGORI HUJAN
+# CATEGORY
 # =========================================================
 
 def kategori_hujan(rr):
@@ -271,7 +379,7 @@ def kategori_hujan(rr):
         return "Hujan Lebat"
 
 # =========================================================
-# PREDIKSI FORECASTING
+# FORECAST
 # =========================================================
 
 if run:
@@ -298,17 +406,10 @@ if run:
                 columns=features
             )
 
-            X_scaled = scaler.transform(
-                X_input
-            )
+            X_scaled = scaler.transform(X_input)
+            X_pca = pca.transform(X_scaled)
 
-            X_pca = pca.transform(
-                X_scaled
-            )
-
-            pred_rr = model.predict(
-                X_pca
-            )[0]
+            pred_rr = model.predict(X_pca)[0]
 
             pred_rr = max(0, pred_rr)
 
@@ -321,36 +422,29 @@ if run:
 
                 "Tanggal": next_date,
 
-                "Curah Hujan Prediksi":
-                    round(pred_rr, 2),
+                "Curah Hujan Prediksi": round(pred_rr, 2),
 
-                "Kategori":
-                    kategori_hujan(pred_rr)
+                "Kategori": kategori_hujan(pred_rr)
 
             })
 
             new_row = forecast_df.iloc[-1].copy()
 
             new_row['tanggal'] = next_date
-
             new_row['RR'] = pred_rr
 
             forecast_df = pd.concat(
-
                 [
                     forecast_df,
                     pd.DataFrame([new_row])
                 ],
-
                 ignore_index=True
             )
 
-        st.session_state.result_df = pd.DataFrame(
-            results
-        )
+        st.session_state.result_df = pd.DataFrame(results)
 
 # =========================================================
-# HASIL PREDIKSI
+# PAGE HASIL
 # =========================================================
 
 if (
@@ -370,10 +464,6 @@ if (
     c4.metric("F1 Score", BEST_F1)
 
     st.markdown("---")
-
-    # =====================================================
-    # STYLE WARNA KATEGORI
-    # =====================================================
 
     def highlight_kategori(row):
 
@@ -409,10 +499,6 @@ if (
         use_container_width=True
     )
 
-    # =====================================================
-    # DOWNLOAD CSV
-    # =====================================================
-
     csv = result_df.to_csv(index=False)
 
     st.download_button(
@@ -423,7 +509,7 @@ if (
     )
 
 # =========================================================
-# GRAFIK
+# PAGE GRAFIK
 # =========================================================
 
 elif (
@@ -441,14 +527,22 @@ elif (
         gdf,
         x="Tanggal",
         y="Curah Hujan Prediksi",
-        markers=True
+        markers=True,
+        template="plotly_dark"
+    )
+
+    fig.update_traces(
+        line=dict(width=4),
+        marker=dict(size=7)
     )
 
     fig.update_layout(
-        template="plotly_dark",
-        height=600,
+        height=650,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         xaxis_title="Tanggal",
-        yaxis_title="Curah Hujan (mm)"
+        yaxis_title="Curah Hujan (mm)",
+        title="Forecast Curah Hujan"
     )
 
     st.plotly_chart(
@@ -457,7 +551,7 @@ elif (
     )
 
 # =========================================================
-# HEATMAP
+# PAGE HEATMAP
 # =========================================================
 
 elif (
@@ -490,12 +584,12 @@ elif (
     )
 
     fig, ax = plt.subplots(
-        figsize=(16,4)
+        figsize=(18,5)
     )
 
     sns.heatmap(
         pivot,
-        cmap="YlGnBu",
+        cmap="coolwarm",
         annot=True,
         fmt=".1f",
         linewidths=0.5,
@@ -505,7 +599,7 @@ elif (
     st.pyplot(fig)
 
 # =========================================================
-# EVALUASI MODEL
+# PAGE EVALUASI
 # =========================================================
 
 elif (
@@ -538,36 +632,32 @@ elif (
         BEST_F1
     )
 
-    st.markdown("---")
+# =========================================================
+# PAGE FLOWCHART
+# =========================================================
 
-    st.subheader("📌 Informasi Model")
+elif menu == "flowchart":
 
-    info_df = pd.DataFrame({
+    st.subheader("🧠 Flowchart Penelitian")
 
-        "Parameter": [
-            "Model",
-            "Metric",
-            "Best K",
-            "Ratio",
-            "PCA Component"
-        ],
-
-        "Value": [
-            "K-NN Hybrid V5.1",
-            "Manhattan",
-            "3",
-            "90:10",
-            "10"
-        ]
-    })
-
-    st.dataframe(
-        info_df,
-        use_container_width=True
+    st.markdown(
+        """
+        Berikut merupakan alur penelitian sistem prediksi curah hujan
+        menggunakan metode Machine Learning K-Nearest Neighbor (K-NN).
+        """
     )
 
+    c1, c2, c3 = st.columns([1,4,1])
+
+    with c2:
+
+        st.image(
+            "flowchart.jpg",
+            width=700
+        )
+
 # =========================================================
-# EMPTY
+# EMPTY STATE
 # =========================================================
 
 elif st.session_state.result_df is None:
@@ -575,3 +665,20 @@ elif st.session_state.result_df is None:
     st.info(
         "Silakan jalankan prediksi terlebih dahulu 🚀"
     )
+
+# =========================================================
+# FOOTER
+# =========================================================
+
+st.markdown("---")
+
+st.markdown(
+    """
+    <center>
+    <span style='color:gray'>
+    Rainfall Forecast Dashboard • Machine Learning Project
+    </span>
+    </center>
+    """,
+    unsafe_allow_html=True
+)
