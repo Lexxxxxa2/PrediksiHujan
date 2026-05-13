@@ -26,54 +26,96 @@ st.set_page_config(
 # SPLASH SCREEN
 # =========================================================
 
+import streamlit.components.v1 as components
+
 if "loading_done" not in st.session_state:
 
-    splash = st.empty()
-
-    splash.markdown(
+    components.html(
         """
+        <html>
+        <head>
         <style>
+
+        body {
+            margin: 0;
+            background-color: #020817;
+            overflow: hidden;
+        }
+
         .splash-container {
-            display:flex;
-            flex-direction:column;
-            justify-content:center;
-            align-items:center;
-            height:80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial;
         }
 
-        .splash-title {
-            font-size:40px;
-            font-weight:700;
-            color:white;
-            margin-top:20px;
+        .logo {
+            width: 220px;
+            animation: float 2s ease-in-out infinite;
         }
 
-        .splash-subtitle {
-            color:#94a3b8;
-            font-size:18px;
+        .title {
+            margin-top: 25px;
+            font-size: 42px;
+            font-weight: bold;
+            color: white;
         }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
         </style>
+        </head>
+
+        <body>
 
         <div class="splash-container">
-            <img src="https://raw.githubusercontent.com/Lexxxxxa2/prediksihujan/main/logo_universitas.png" width="220">
 
-            <div class="splash-title">
+            <img
+                class="logo"
+                src="https://raw.githubusercontent.com/Lexxxxxa2/prediksihujan/main/logo_universitas.png"
+            >
+
+            <div class="title">
                 Universitas Wijaya Kusuma Surabaya
             </div>
 
-            <div class="splash-subtitle">
+            <div class="subtitle">
                 Rainfall Forecast Dashboard
             </div>
+
         </div>
+
+        </body>
+        </html>
         """,
-        unsafe_allow_html=True
+        height=700
     )
 
     time.sleep(3)
 
-    splash.empty()
-
     st.session_state.loading_done = True
+
+    st.rerun()
 
 # =========================================================
 # MODERN CSS
