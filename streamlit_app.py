@@ -276,121 +276,78 @@ def kategori_hujan(rr):
 
 if run:
 
-    forecast_df = df.copy()
+    with st.spinner("Sedang melakukan prediksi..."):
 
-    results = []
+        forecast_df = df.copy()
 
-    for i in range(n_days):
+        results = []
 
-        # =====================================
-        # FEATURE ENGINEERING
-        # =====================================
+        for i in range(n_days):
 
-        temp_df = add_features(
-            forecast_df.copy()
+            temp_df = add_features(
+                forecast_df.copy()
+            )
+
+            temp_df = temp_df.ffill()
+            temp_df = temp_df.fillna(0)
+
+            latest = temp_df.iloc[-1]
+
+            X_input = pd.DataFrame(
+                [latest[features].values],
+                columns=features
+            )
+
+            X_scaled = scaler.transform(
+                X_input
+            )
+
+            X_pca = pca.transform(
+                X_scaled
+            )
+
+            pred_rr = model.predict(
+                X_pca
+            )[0]
+
+            pred_rr = max(0, pred_rr)
+
+            next_date = (
+                forecast_df['tanggal'].iloc[-1]
+                + pd.Timedelta(days=1)
+            )
+
+            results.append({
+
+                "Tanggal": next_date,
+
+                "Curah Hujan Prediksi":
+                    round(pred_rr, 2),
+
+                "Kategori":
+                    kategori_hujan(pred_rr)
+
+            })
+
+            new_row = forecast_df.iloc[-1].copy()
+
+            new_row['tanggal'] = next_date
+
+            new_row['RR'] = pred_rr
+
+            forecast_df = pd.concat(
+
+                [
+                    forecast_df,
+                    pd.DataFrame([new_row])
+                ],
+
+                ignore_index=True
+            )
+
+        st.session_state.result_df = pd.DataFrame(
+            results
         )
-
-        temp_df = temp_df.ffill()
-        temp_df = temp_df.fillna(0)
-
-        # =====================================
-        # AMBIL DATA TERAKHIR
-        # =====================================
-
-        latest = temp_df.iloc[-1]
-
-        # =====================================
-        # INPUT FEATURE
-        # =====================================
-
-        X_input = pd.DataFrame(
-            [latest[features].values],
-            columns=features
-        )
-
-        # =====================================
-        # SCALING
-        # =====================================
-
-        X_scaled = scaler.transform(
-            X_input
-        )
-
-        # =====================================
-        # PCA
-        # =====================================
-
-        X_pca = pca.transform(
-            X_scaled
-        )
-
-        # =====================================
-        # PREDIKSI
-        # =====================================
-
-        pred_rr = model.predict(
-            X_pca
-        )[0]
-
-        pred_rr = max(0, pred_rr)
-
-        # =====================================
-        # TANGGAL BARU
-        # =====================================
-
-        next_date = (
-            forecast_df['tanggal'].iloc[-1]
-            + pd.Timedelta(days=1)
-        )
-
-        # =====================================
-        # SIMPAN HASIL
-        # =====================================
-
-        results.append({
-
-            "Tanggal": next_date,
-
-            "Curah Hujan Prediksi":
-                round(pred_rr, 2),
-
-            "Kategori":
-                kategori_hujan(pred_rr)
-
-        })
-
-        # =====================================
-        # ROW BARU
-        # =====================================
-
-        new_row = forecast_df.iloc[-1].copy()
-
-        new_row['tanggal'] = next_date
-
-        # hasil prediksi dipakai lagi
-        new_row['RR'] = pred_rr
-
-        # =====================================
-        # TAMBAHKAN KE DATASET
-        # =====================================
-
-        forecast_df = pd.concat(
-
-            [
-                forecast_df,
-                pd.DataFrame([new_row])
-            ],
-
-            ignore_index=True
-        )
-
-    # =====================================
-    # SIMPAN HASIL
-    # =====================================
-
-    st.session_state.result_df = pd.DataFrame(
-        results
-    )
 
 # =========================================================
 # HASIL PREDIKSI
@@ -405,7 +362,6 @@ if (
 
     st.subheader("📋 Model Hasil Prediksi")
 
-    # metric
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("MAE", BEST_MAE)
@@ -415,34 +371,48 @@ if (
 
     st.markdown("---")
 
-    # warna kategori
-    def style_kategori(val):
+    # =====================================================
+    # STYLE WARNA KATEGORI
+    # =====================================================
 
-        if val == "Tidak Hujan":
-            return "background-color:#2c2c2c;color:white"
+    def highlight_kategori(row):
 
-        elif val == "Hujan Ringan":
-            return "background-color:#2ecc71;color:black"
+        kategori = row["Kategori"]
 
-        elif val == "Hujan Sedang":
-            return "background-color:#f39c12;color:black"
+        if kategori == "Tidak Hujan":
+            color = "background-color: #2c2c2c; color: white"
+
+        elif kategori == "Hujan Ringan":
+            color = "background-color: #2ecc71; color: black"
+
+        elif kategori == "Hujan Sedang":
+            color = "background-color: #f39c12; color: black"
 
         else:
-            return "background-color:#e74c3c;color:white"
+            color = "background-color: #e74c3c; color: white"
 
-    st.dataframe(
+        return [""] * 2 + [color]
+
+    styled_df = (
         result_df.style
         .format({
             "Curah Hujan Prediksi": "{:.2f}"
         })
-        .applymap(
-            style_kategori,
-            subset=["Kategori"]
-        ),
+        .apply(
+            highlight_kategori,
+            axis=1
+        )
+    )
+
+    st.dataframe(
+        styled_df,
         use_container_width=True
     )
 
-    # download
+    # =====================================================
+    # DOWNLOAD CSV
+    # =====================================================
+
     csv = result_df.to_csv(index=False)
 
     st.download_button(
