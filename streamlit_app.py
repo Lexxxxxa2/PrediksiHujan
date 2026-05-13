@@ -133,7 +133,7 @@ footer {
 }
 
 header {
-    visibility: hidden;
+    background: transparent;
 }
 
 .main {
@@ -149,10 +149,30 @@ header {
     padding-bottom: 2rem;
 }
 
+/* ===================================================== */
+/* SIDEBAR FIX */
+/* ===================================================== */
+
 section[data-testid="stSidebar"] {
     background: #0b1120;
     border-right: 1px solid rgba(255,255,255,0.05);
 }
+
+/* sidebar terbuka */
+section[data-testid="stSidebar"][aria-expanded="true"] {
+    min-width: 260px !important;
+    max-width: 260px !important;
+}
+
+/* sidebar collapse */
+section[data-testid="stSidebar"][aria-expanded="false"] {
+    min-width: 0px !important;
+    max-width: 0px !important;
+}
+
+/* ===================================================== */
+/* BUTTON */
+/* ===================================================== */
 
 .stButton > button {
     width: 100%;
@@ -171,12 +191,20 @@ section[data-testid="stSidebar"] {
     box-shadow: 0 10px 25px rgba(37,99,235,0.4);
 }
 
+/* ===================================================== */
+/* METRIC CARD */
+/* ===================================================== */
+
 div[data-testid="metric-container"] {
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.05);
     padding: 15px;
     border-radius: 18px;
 }
+
+/* ===================================================== */
+/* TITLE */
+/* ===================================================== */
 
 .big-title {
     font-size: 42px;
@@ -718,7 +746,7 @@ st.markdown(
     """
     <center>
     <span style='color:gray'>
-    Rainfall Forecast Dashboard • Machine Learning Project
+    Didukung oleh Data BMKG
     </span>
     </center>
     """,
