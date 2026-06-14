@@ -210,13 +210,22 @@ div[data-testid="metric-container"] {
     font-size: 42px;
     font-weight: 800;
     color: white;
+
+    /* FIX TEXT KEPOTONG */
+    line-height: 1.3;
+    padding-top: 15px;
+    padding-bottom: 8px;
+
     margin-bottom: 0;
+    overflow: visible;
 }
 
 .subtitle {
     color: #94a3b8;
     font-size: 16px;
-    margin-top: -10px;
+
+    /* ubah ini */
+    margin-top: 0px;
 }
 
 </style>
