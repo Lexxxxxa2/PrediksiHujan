@@ -17,7 +17,7 @@ import time
 
 st.set_page_config(
     page_title="Rainfall Forecast Dashboard",
-    page_icon="🌧️",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -245,7 +245,7 @@ if "page" not in st.session_state:
 # SIDEBAR
 # =========================================================
 
-st.sidebar.markdown("## 🌧️ Rainfall AI")
+st.sidebar.markdown("##Rainfall AI")
 st.sidebar.markdown("---")
 
 def nav_button(label, key):
@@ -256,11 +256,11 @@ def nav_button(label, key):
     ):
         st.session_state.page = key
 
-nav_button("📋 Hasil Prediksi", "hasil")
-nav_button("📈 Grafik", "grafik")
-nav_button("🔥 Heatmap", "heatmap")
-nav_button("📊 Evaluasi Model", "evaluasi")
-nav_button("🧠 Flowchart Penelitian", "flowchart")
+nav_button("Hasil Prediksi", "hasil")
+nav_button("Grafik", "grafik")
+nav_button("Heatmap", "heatmap")
+nav_button("Evaluasi Model", "evaluasi")
+nav_button("Flowchart Penelitian", "flowchart")
 
 st.sidebar.markdown("---")
 
@@ -390,7 +390,7 @@ BEST_F1 = 0.70
 
 st.markdown("""
 <div class="big-title">
-🌧️ Rainfall Forecast Dashboard
+Rainfall Forecast Dashboard
 </div>
 
 <div class="subtitle">
@@ -417,7 +417,7 @@ st.markdown("---")
 # INPUT SECTION
 # =========================================================
 
-st.markdown("## ⚙️ Pengaturan Prediksi")
+st.markdown("## Pengaturan Prediksi")
 
 box1, box2 = st.columns([2,1])
 
@@ -436,7 +436,7 @@ with box2:
     st.write("")
 
     run = st.button(
-        "🚀 Jalankan Prediksi"
+        "Jalankan Prediksi"
     )
 
 # =========================================================
@@ -533,7 +533,7 @@ if (
 
     result_df = st.session_state.result_df.copy()
 
-    st.subheader("📋 Model Hasil Prediksi")
+    st.subheader("Model Hasil Prediksi")
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -581,7 +581,7 @@ if (
     csv = result_df.to_csv(index=False)
 
     st.download_button(
-        "⬇️ Download CSV",
+        "⬇Download CSV",
         csv,
         "hasil_prediksi.csv",
         use_container_width=True
@@ -597,7 +597,7 @@ elif (
 ):
 
     st.subheader(
-        "📈 Grafik Prediksi Curah Hujan"
+        "Grafik Prediksi Curah Hujan"
     )
 
     gdf = st.session_state.result_df.copy()
@@ -639,7 +639,7 @@ elif (
 ):
 
     st.subheader(
-        "🔥 Heatmap Curah Hujan"
+        "Heatmap Curah Hujan"
     )
 
     hdf = st.session_state.result_df.copy()
@@ -686,7 +686,7 @@ elif (
     and menu == "evaluasi"
 ):
 
-    st.subheader("📊 Evaluasi Model")
+    st.subheader("Evaluasi Model")
 
     c1, c2, c3 = st.columns(3)
 
@@ -717,7 +717,7 @@ elif (
 
 elif menu == "flowchart":
 
-    st.subheader("🧠 Flowchart Penelitian")
+    st.subheader("Flowchart Penelitian")
 
     st.markdown(
         """
@@ -742,7 +742,7 @@ elif menu == "flowchart":
 elif st.session_state.result_df is None:
 
     st.info(
-        "Silakan jalankan prediksi terlebih dahulu 🚀"
+        "Silakan jalankan prediksi terlebih dahulu"
     )
 
 # =========================================================
