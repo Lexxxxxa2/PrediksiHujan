@@ -17,7 +17,6 @@ import time
 
 st.set_page_config(
     page_title="Rainfall Forecast Dashboard",
-    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -245,7 +244,7 @@ if "page" not in st.session_state:
 # SIDEBAR
 # =========================================================
 
-st.sidebar.markdown("##Rainfall AI")
+st.sidebar.markdown("Rainfall Forecasting")
 st.sidebar.markdown("---")
 
 def nav_button(label, key):
